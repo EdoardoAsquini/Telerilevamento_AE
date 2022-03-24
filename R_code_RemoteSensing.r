@@ -39,3 +39,18 @@ plot(Landsat_2011$B1_sre, col=blue)
 plot(Landsat_2011$B2_sre, col=green)
 plot(Landsat_2011$B3_sre, col=red)
 plot(Landsat_2011$B4_sre, col=nir)
+
+plotRGB(Landsat_2011, r=3, g=2, b=1, stretch="lin"/"hist") #immagine a colori naturali, scegliere se stretch=lineare o histogramma
+plotRGB(Landsat_2011, r=4, g=3, b=2, stretch="lin") #NIR nella banda del R
+plotRGB(Landsat_2011, r=3, g=4, b=2, stretch="lin") #NIR nella banda del G
+plotRGB(Landsat_2011, r=3, g=2, b=4, stretch="lin") #NIR nella banda del B, suolo nudo visualizzato in giallo
+
+Landsat_1988 <- brick("C:/lab/Landsat_p224r63/p224r63_1988.grd") #carica l'immagine del 1988
+Landsat_1988
+
+par(mfrow=c(2,1)) #confronto tra le due immagini, NIR nel rosso
+plotRGB(Landsat_1988, r=4, g=3, b=1, stretch="lin")
+plotRGB(Landsat_2011, r=4, g=3, b=1, stretch="lin")
+
+
+
