@@ -3,6 +3,8 @@
 #install.packages("gglpot2") #virgolette per "uscire" da R (ovvero legge file esterni al programma R); quello dentro le parentesi si chiama ARGOMENTO
 #install.packages("rgdal")
 #install.packages("RStoolbox")
+#install.packages("rasterdiv")
+
 library(raster)
 library(Rstoolbox)
 
@@ -51,6 +53,5 @@ Landsat_1988
 par(mfrow=c(2,1)) #confronto tra le due immagini, NIR nel rosso
 plotRGB(Landsat_1988, r=4, g=3, b=1, stretch="lin")
 plotRGB(Landsat_2011, r=4, g=3, b=1, stretch="lin")
-
 
 
