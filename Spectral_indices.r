@@ -28,3 +28,11 @@ plot(NDVI1998, col=ndvi)
 par(mfrow=c(2,1))
 plotRGB(Landsat_1988, r=1, g=2, b=3, stretch="lin")
 plot(NDVI1992, col=ndvi)
+
+library(rasterdiv)
+library(RStoolbox)
+
+SI1992 <- spectralIndices(l1992, green = 3, red = 2, nir = 1)
+plot(SI1992, col=ndvi)
+
+plot(copNDVI) #NDVI medio dai dati di Copernicus, funzione di rasterdiv
