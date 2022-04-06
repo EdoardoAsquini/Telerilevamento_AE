@@ -1,0 +1,10 @@
+library(raster)
+setwd("C:/lab/Greenland")
+
+rasterlist <- list.files(pattern = "lst")
+rasterlist
+rasterfun <- lapply(rasterlist, raster) #funzione "lapply" applica all'argomento la stessa funzione
+rasterfun
+tgr <- stack(rasterfun) #funzione "stack" sovrappone i vari raster in un unico file
+raster <- colorRampPalette(c("blue", "light blue", "pink", "red"))(100)
+plot(tgr, col=raster)
