@@ -8,3 +8,36 @@ rasterfun
 tgr <- stack(rasterfun) #funzione "stack" sovrappone i vari raster in un unico file
 raster <- colorRampPalette(c("blue", "light blue", "pink", "red"))(100)
 plot(tgr, col=raster)
+plot(lst_2000)
+
+raster <- colorRampPalette(c("blue", "light blue", "pink", "red"))(100)
+
+par(mfrow=c(2,2))
+plot(lst_2000, col=raster)
+plot(lst_2005, col=raster)
+plot(lst_2010, col=raster)
+plot(lst_2015, col=raster)
+
+plotRGB(tgr, r=1, g=2, b=3, stretch="lin")
+
+............................................................................................................................................
+
+#TIME SERIES ANALISYS OF NITROGEN OXIDES
+
+library(raster)
+
+setwd("C:/lab/EN")
+
+ENlist <- list.files(pattern= "EN")
+ENlist
+
+ENraster <- lapply(ENlist, raster)
+ENraster
+
+nitrogen <- colorRampPalette(c("red", "orange", "yellow"))(100)
+EN <-stack(ENraster)
+plot(EN, col=nitrogen)
+
+ENdif <- EN$EN_0001 - EN$EN_0013
+ndif <- colorRampPalette(c("blue", "white", "red"))(100)
+plot(ENdif, col=ndif)
