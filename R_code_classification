@@ -1,1 +1,19 @@
+library(raster)
+library(RStoolbox)
+
+setwd("C:/lab/")
+gc <- brick("dolansprings_oli_2013088_canyon_lrg.jpg")
+
+plotRGB(gc, r=1, g=2, b=3, stretch="lin")
+plotRGB(gc, r=1, g=2, b=3, stretch="hist")
+
+gcc2 <- unsuperClass(gc, nClasses=2) #unsuperClass crea in automatico delle classi che racchiudono i valori dei pixed
+gcc2
+plot(gcc2$map) #"map" è una parte del modello prodotto da unsuperClass
+#in questo caso la classe in verde é tutta la roccia, quello in bianco sono utte le parti in ombra, le alre cose scure etc...
+
+# set.seed(n) fa in modo che venga usata sempre la stessa classificazione (numero classi)
+
+gcc4 <- unsuperClass(gc, nClasses=4)
+plot(gcc4$map, col=sun)
 
