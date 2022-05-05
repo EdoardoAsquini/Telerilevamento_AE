@@ -1,0 +1,16 @@
+library(raster)
+library(RStoolbox)
+library(ggplot2)
+library(patchwork)
+setwd("C:/lab/Landsat_p224r63")
+
+p224r63_2011 <- brick("p224r63_2011_masked.grd")
+p224r63_2011
+plot(p224r63_2011)
+
+p224r63_2011_res <- aggregate(p224r63_2011, fact=10) #ricampiona l'immagine e ne riduce la risoluzione, attribuendo al nuovo pixel il valore medio dei n pixel adiacenti (10 in questo caso)
+g1 <- ggRGB(p224r63_2011, 4, 3, 2 )
+g2 <- ggRGB(p224r63_2011_res, 4, 3, 2)
+g3 <- ggRGB(aggregate(p224r63_2011, fact=100), 4, 3, 2) #ricampionamento aggressivo, ogni pixel è 3000 x 3000 metri
+
+g1 + g2 + g3
