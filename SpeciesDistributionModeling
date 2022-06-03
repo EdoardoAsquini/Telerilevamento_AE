@@ -1,0 +1,57 @@
+#install.packages("sdm")
+library(sdm)
+library(raster)
+library(rgdal)
+
+?system.file
+file <- system.file("external/species.shp", package="sdm") #richiama un file da un pacchetto
+species <- shapefile(file) #in questo caso "file" è il nome dell'oggetto che abbimamo richiamato con il comando sopra
+species #è una raccolta di punti dove è stata trovata una specie
+plot(species, pch=19) #pch=19 mostra come puntini
+species$Occurrence #i punti nello spazio dove c'è presenza/assenza
+
+occurrence <- species[species$Occurrence == 1,] #quadre per fare un subset, == per fare selezione
+missings <- species[species$Occurrence == 0,]
+plot(occurrence, col="blue", pch=19)
+points(missings, col="red", pch=19) #usare il comando "points" altrimenti usando "plot" sovrascrive l'output presente e non si potrebbe vederli sovrapposti
+
+path <- system.file("external", package="sdm") #richiama il path dove sono memorizzati i vari documenti per non ripeterlo ogni volta
+lst <- list.files(path = path, pattern = "asc$", full.names = TRUE) #dal path sopra dichiarato prende tutti i file che finiscono con .asc e memorizza il nome completo
+lst
+predittori <- stack(lst) #compatta su un file unico con 4 layer 
+
+cl <- colorRampPalette(c('blue','orange','red','yellow')) (100)
+
+plot(predittori, col=cl)
+
+elev <- predittori$elevation
+temp <- predittori$temperature
+precip <- predittori$precipitation
+ndvi <- predittori$vegetation
+
+plot(elev, col=cl)
+points(occurrence, pch=19) #distribuzione delle presenze in relazione all'elevazione
+
+plot(temp, col=cl)
+points(occurrence, pch=19)
+
+plot(precip, col=cl)
+points(occurrence, pch=19)
+
+plot(ndvi, col=cl)
+points(occurrence, pch=19)
+
+datasdm <- sdmData(train=species, predictors = predittori)
+datasdm
+
+mod1 <- sdm(Occurrence ~ elevation + vegetation + precipitation + temperature, data=datasdm, methods = "glm")
+pred1 <- predict(mod1, newdata=predittori)
+plot(pred1, col=cl)
+points(occurrence, pch=19)
+
+par(mfrow=c(2,3))
+plot(pred1, col=cl)
+plot(elev, col=cl)
+plot(temp, col=cl)
+plot(ndvi, col=cl)
+plot(precip, col=cl)
