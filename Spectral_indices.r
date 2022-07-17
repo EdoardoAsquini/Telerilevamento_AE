@@ -6,7 +6,7 @@ l1998 <- brick("C:/lab/defor2.jpg")
 plotRGB(l1992, r=1, g=3, b=2, stretch="lin")
 plotRGB(l1998, r=1, g=3, b=2, stretch="lin")
 
-DVI1992 <- l1992[[1]] - l1992[[2]] #Difference Vegetation Inedex=Nir-Red; misura stato di salute della vegetazione
+DVI1992 <- l1992[[1]] - l1992[[2]] #Difference Vegetation Inedex=Nir-Red; used as a proxy for vegetation health status
 DVI1998 <- l1998[[1]] - l1998[[2]]
 
 ndvi <- colorRampPalette(c("darkblue", "yellow", "red", "black")) (100)
@@ -35,4 +35,4 @@ library(RStoolbox)
 SI1992 <- spectralIndices(l1992, green = 3, red = 2, nir = 1)
 plot(SI1992, col=ndvi)
 
-plot(copNDVI) #NDVI medio dai dati di Copernicus, funzione di rasterdiv
+plot(copNDVI) #mean NDVI from Copernicus data, function from rasterdiv package
