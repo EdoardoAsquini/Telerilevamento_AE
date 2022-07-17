@@ -1,0 +1,31 @@
+library(raster)
+library(RStoolbox)
+library(ggplot2)
+library(patchwork)
+install.packages("viridis")
+library(viridis)
+
+setwd("C:/lab/")
+
+similaun <- brick("sentinel_similaun.png")
+sim_red <- ggRGB(similaun, 1, 2, 3, stretch = "lin" ) #N.B. ggRGB uses stretch="lin" by default
+sim_green <- ggRGB(similaun, 2, 1, 3, stretch = "lin" ) # infrared (=vegetation) on the green band
+sim_red+sim_green
+
+nir <- similaun$sentinel_similaun.1
+
+st_dev <- focal( nir,
+       matrix(1/9, 3, 3), #1/9 is the minimum unit, dimensions are 3 by 3
+       fun=sd 
+       ) #mobile windows of chosen dimensions to calculate a chosen value (included in the central pixel of the grid)
+
+variazione <- colorRampPalette(c("blue", "green", "pink", "magenta", "orange", "brown", "red", "yellow"))(100)
+
+plot(st_dev, col=viridis) #plots the calculated variability using standard deviation
+
+ggplot() + #opens an empty ggPlot  
+geom_raster(sd, mapping=aes(x=x, y=y, fill=layer)) +
+scale_fill_viridis(option = "magma") +
+ggtitle("Standard deviation by viridis colour scale")
+ 
+st_dev7 <- focal(nir, matrix(1/49, 7, 7), fun=sd) 
