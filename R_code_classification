@@ -1,19 +1,92 @@
 library(raster)
 library(RStoolbox)
 
+#SUN IMAGES
 setwd("C:/lab/")
+so <- brick("Solar_Orbiter_s_first_views_of_the_Sun_pillars.jpg")
+plotRGB(so, 1,2,3, stretch="lin")
+
+soc <- unsuperClass(so, nClasses=3)
+plot(soc$map)
+
+soc20 <- unsuperClass(so, nClasses=20)
+
+sun <- colorRampPalette(c("yellow", "black", "red"))(100)
+
+plot(soc20$map, col=sun)
+
+#GRAND CANYON 
 gc <- brick("dolansprings_oli_2013088_canyon_lrg.jpg")
 
 plotRGB(gc, r=1, g=2, b=3, stretch="lin")
 plotRGB(gc, r=1, g=2, b=3, stretch="hist")
 
-gcc2 <- unsuperClass(gc, nClasses=2) #unsuperClass crea in automatico delle classi che racchiudono i valori dei pixed
+gcc2 <- unsuperClass(gc, nClasses=2) #unsuperClass creates different classes where the pixels will get sorted into, the classes are "unsupervised" so the parameters are chosen automatically by the algorythm 
 gcc2
-plot(gcc2$map) #"map" è una parte del modello prodotto da unsuperClass
-#in questo caso la classe in verde é tutta la roccia, quello in bianco sono utte le parti in ombra, le alre cose scure etc...
+plot(gcc2$map) #"map" is a part of the model created by unsuperClass
+#in this case the green class is all the rocks, the white one represents the shadows, etc...
 
-# set.seed(n) fa in modo che venga usata sempre la stessa classificazione (numero classi)
+# set.seed(n) maintains the same classification (numero classi)
 
 gcc4 <- unsuperClass(gc, nClasses=4)
 plot(gcc4$map, col=sun)
 
+#LAND USE
+#install.packages("ggplot2")
+#install.packages("patchwork")
+library(raster)
+library(RStoolbox)
+library(ggplot2)
+library(patchwork) #N.B. requires ggPlot; easier functions to create graphs and multiframes
+
+setwd("C:/lab/")
+
+l1992
+l1998 #deforestation data previously created ("l1992 <- brick("C:/lab/defor1.jpg")", "l1998 <- brick("C:/lab/defor2.jpg")")
+
+p1 <- ggRGB(l1992, 1, 2, 3, stretch="lin") #ggRGB fa i grafici più bellini; NIR in band 1, r in band 2, g in band 3
+p2 <- ggRGB(l1998, 1, 2, 3, stretch="lin")
+
+p1+p2 #syntaxis allowed by "patchwork", places the graphs created with ggRGB side by side 
+p1/p2 #syntaxis allowed by "patchwork", places the graphs one on top of the other
+
+l92 <- unsuperClass(l1992, nClasses = 2)
+
+plot(l92$map) #colours are assigned randomly, but assignation can be kept using "setseed()"
+
+#class 1: forest
+#class 2: fields + water
+
+l98 <- unsuperClass(l1998, nClasses = 2)
+plot(l98$map)
+
+#class 2:fields
+#class 1:forest
+
+
+freq(l92$map) #calculates frequencies for each class
+freq(l98$map)
+tot_92 <- 341292
+prop_for_92 <- 305552*100 / tot_92 #calculates forest percentual coverage in 1992
+prop_for_92
+
+percent_for_98 <- 178126*100/342726
+percent_for_98
+
+percent_agr_98 <- 100 - percent_for_98
+percent_agr_98
+percent_agr_92 <- 100 - prop_for_92
+percent_agr_92
+
+#creation of the dataframe
+
+class <- c("Foerest", "Agriculture")
+percentuali_1992 <- c(prop_for_92,percent_agr_92)
+percentuali_1998 <- c(percent_for_98,percent_agr_98)
+
+multitemporal <- data.frame(class, percentuali_1992, percentuali_1998)
+
+pdf("multitemporal_defor")
+ggplot(multitemporal, aes(x=class, y=percentuali_1992, color=class)) + geom_bar(stat = "identity", fill="white")
+dev.off()
+ggplot(multitemporal, aes(x=class, y=percentuali_1998, color=class)) + geom_bar(stat = "identity", fill="white")
