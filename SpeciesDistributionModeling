@@ -4,21 +4,21 @@ library(raster)
 library(rgdal)
 
 ?system.file
-file <- system.file("external/species.shp", package="sdm") #richiama un file da un pacchetto
-species <- shapefile(file) #in questo caso "file" è il nome dell'oggetto che abbimamo richiamato con il comando sopra
-species #è una raccolta di punti dove è stata trovata una specie
-plot(species, pch=19) #pch=19 mostra come puntini
-species$Occurrence #i punti nello spazio dove c'è presenza/assenza
+file <- system.file("external/species.shp", package="sdm") #calls file prom package
+species <- shapefile(file) #in this case "file" in the name of the object we called with the previous command
+species #is a collection of points where the species was found
+plot(species, pch=19) #pch=19 shows points as little dots
+species$Occurrence #points where there is presence/absence
 
-occurrence <- species[species$Occurrence == 1,] #quadre per fare un subset, == per fare selezione
+occurrence <- species[species$Occurrence == 1,] #we use brackets to create a subset, == to make a selection of a precise object
 missings <- species[species$Occurrence == 0,]
 plot(occurrence, col="blue", pch=19)
-points(missings, col="red", pch=19) #usare il comando "points" altrimenti usando "plot" sovrascrive l'output presente e non si potrebbe vederli sovrapposti
+points(missings, col="red", pch=19) #use command "points" otherwise "plot" command overwrites current output and we couldn't observe the overlapping of the points over the map
 
-path <- system.file("external", package="sdm") #richiama il path dove sono memorizzati i vari documenti per non ripeterlo ogni volta
-lst <- list.files(path = path, pattern = "asc$", full.names = TRUE) #dal path sopra dichiarato prende tutti i file che finiscono con .asc e memorizza il nome completo
+path <- system.file("external", package="sdm") #assigns the path where the documents are stored so we won't have to write it again
+lst <- list.files(path = path, pattern = "asc$", full.names = TRUE) #calls all the files ending with .asc and memorizes its full name
 lst
-predittori <- stack(lst) #compatta su un file unico con 4 layer 
+predittori <- stack(lst) #compacts in a single file with 4 layers
 
 cl <- colorRampPalette(c('blue','orange','red','yellow')) (100)
 
@@ -30,7 +30,7 @@ precip <- predittori$precipitation
 ndvi <- predittori$vegetation
 
 plot(elev, col=cl)
-points(occurrence, pch=19) #distribuzione delle presenze in relazione all'elevazione
+points(occurrence, pch=19) #distribution of presences in relation with altitude
 
 plot(temp, col=cl)
 points(occurrence, pch=19)
