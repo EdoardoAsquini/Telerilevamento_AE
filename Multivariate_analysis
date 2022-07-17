@@ -14,3 +14,43 @@ g2 <- ggRGB(p224r63_2011_res, 4, 3, 2)
 g3 <- ggRGB(aggregate(p224r63_2011, fact=100), 4, 3, 2) #ricampionamento aggressivo, ogni pixel è 3000 x 3000 metri
 
 g1 + g2 + g3
+
+#INTRODUCING PRINCIPAL COMPONENTS ANALYSIS
+img1 <- ggRGB(similaun, 3,1,2) #NIR=band 1, Red=band 2, Green=band 3; stretch by default with ggRGB
+
+similaun_PCA <- rasterPCA(similaun) #command for Principal Components Analysis (a type of multivariate analysis); composed by call, map and model (make calls with $)
+similaun_PCA
+summary(similaun_PCA$model) #check "proportion of variance" to see the portion explained by variance
+plot(similaun_PCA$map) #"map" shows the variability explained by the differents components
+g1 <- ggplot() +
+  geom_raster(similaun_PCA$map$PC1, mapping=aes(x=x, y=y, fill=PC1))
+g2 <- ggplot() +
+  geom_raster(similaun_PCA$map$PC2, mapping=aes(x=x, y=y, fill=PC2))
+g3 <- ggplot() +
+  geom_raster(similaun_PCA$map$PC3, mapping=aes(x=x, y=y, fill=PC3))
+g1 + g2 + g3
+
+similaun_sd3 <- focal(similaun_PCA$map$PC1, matrix(1/9, 3, 3), fun=sd) #dev.st of PC1 with mobile window
+similaun_sd3
+
+img3 <- ggplot() + 
+  geom_raster(similaun_sd3, mapping=aes(x=x, y=y, fill=layer)) + #the name to use as fill is located in the output "name" of sumilaun_sd
+  scale_fill_viridis()
+
+img1 + g1 + img3 #images put side by side using patchwork
+
+similaun_sd5 <- focal(similaun_PCA$map$PC1, matrix(1/25, 5, 5), fun=sd)
+
+img4 <- ggplot() +
+  geom_raster(similaun_sd5, mapping=aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis(option = "inferno")              
+
+img3 + img4
+
+similaun_sd7 <- focal(similaun_PCA$map$PC1, matrix(1/49, 7, 7), fun=sd)
+
+img5 <- ggplot() +
+  geom_raster(similaun_sd7, mapping=aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis(option = "inferno")
+
+img3 + img4 + img5
