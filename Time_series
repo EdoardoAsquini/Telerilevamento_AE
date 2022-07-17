@@ -3,9 +3,9 @@ setwd("C:/lab/Greenland")
 
 rasterlist <- list.files(pattern = "lst")
 rasterlist
-rasterfun <- lapply(rasterlist, raster) #funzione "lapply" applica all'argomento la stessa funzione
+rasterfun <- lapply(rasterlist, raster) #the function "lapply" applies the same function to the argument
 rasterfun
-tgr <- stack(rasterfun) #funzione "stack" sovrappone i vari raster in un unico file
+tgr <- stack(rasterfun) #the function "stack" overlaps the different files and crate a single one
 raster <- colorRampPalette(c("blue", "light blue", "pink", "red"))(100)
 plot(tgr, col=raster)
 plot(lst_2000)
