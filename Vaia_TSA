@@ -1,0 +1,245 @@
+library(raster)
+library(ggplot2)
+library(RStoolbox)
+library(viridis)
+library(patchwork)
+library(colorist)
+setwd("Your_Working_Directory")
+
+l2017 <- list.files(pattern = "20171018") #October
+l2018 <- list.files(pattern = "20181005") #October, pre-Vaia
+l2019 <- list.files(pattern = "20191125") #November
+l2020 <- list.files(pattern = "20201111") #November
+l2021 <- list.files(pattern = "20211029") #October
+
+rasterfun2017 <- lapply(l2017, raster)
+r2017 <- brick(rasterfun2017)
+
+rasterfun2018 <- lapply(l2018, raster)
+r2018 <- brick(rasterfun2018)
+
+rasterfun2019 <- lapply(l2019, raster)
+r2019 <- brick(rasterfun2019)
+
+rasterfun2020 <- lapply(l2020, raster)
+r2020 <- brick(rasterfun2020)
+
+rasterfun2021 <- lapply(l2021, raster)
+r2021 <- brick(rasterfun2021)
+
+plotRGB(r2017, r=1, g=2, b=3, stretch="hist") #total image, too many pixels, very heavy
+
+#cropping and resampling algorithm
+
+#extent <- drawExtent(show = TRUE, col = "red") #REQUIRES the image in the output to work; allows to select 2 point on the map that will create the area used to crop the layers
+#N.B. The previous function saves the object as an extent, is is not required to run the line everytime for it is saved in the enviroment. It is still possible to run the line again if you wish to change the extent
+r2017c <- crop(r2017, extent) #crops image using the extent we created; snap="near" matches the borders of our drawn extend with those of the layer
+plotRGB(r2017c, r=1, g=2, b=3, stretch = "hist") #shows cropped image as it is. The image is very heavy, therefore we will need to resample it. This step can be avoided, but provides a first impression of the study area. 
+
+t2017 <- aggregate(r2017c, fact=10, fun=mean, dissolve = TRUE) #resampling of the image; dissolve=TRUE dissolves the borders of the pixels so the resulting image is smoother
+i2017 <- ggRGB(t2017, 1,2,3, stretch = "hist") #shows final image; real colours
+
+t2018 <- aggregate(crop(r2018, extent, snap = "near"), fact=10, fun=mean, dissolve = TRUE)
+i2018 <- ggRGB(t2018, 1,2,3, stretch = "hist") 
+
+t2019 <- aggregate(crop(r2019, extent, snap = "near"), fact=10, fun=mean, dissolve = TRUE) 
+i2019 <- ggRGB(t2019, 2,1,3, stretch = "hist") 
+
+t2020 <- aggregate(crop(r2020, extent, snap = "near"), fact=10, fun=mean, dissolve = TRUE) 
+i2020 <- ggRGB(t2020, 1,2,3, stretch = "hist")
+
+t2021 <- aggregate(crop(r2021, extent, snap = "near"), fact=10, fun=mean, dissolve = TRUE) 
+i2021 <- ggRGB(t2021, 1,3,2, stretch = "hist") 
+
+i2017/((i2018 + i2019)/(i2020 + i2021)) #syntaxis allowed by patchwork library
+i2017 / i2020
+
+#NDVI
+NDVI2017 <- (t2017$X20171018_B4 - t2017$X20171018_B3)/(t2017$X20171018_B4 + t2017$X20171018_B3)
+NDVI2018 <- (t2018$X20181005_B4 - t2018$X20181005_B3)/(t2018$X20181005_B4 + t2018$X20181005_B3)
+NDVI2019 <- (t2019$X20191125_B4 - t2019$X20191125_B3)/(t2019$X20191125_B4 + t2019$X20191125_B3)
+NDVI2020 <- (t2020$X20201111_B4 - t2020$X20201111_B3)/(t2020$X20201111_B4 + t2020$X20201111_B3)
+NDVI2021 <- (t2021$X20211029_B4 - t2021$X20211029_B3)/(t2021$X20211029_B3 + t2021$X20211029_B3)
+
+NDVI2017_plot <- ggplot() + 
+  geom_raster(NDVI2017, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "viridis", name = "NDVI 2017") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2017")
+
+NDVI2018_plot <- ggplot() + 
+  geom_raster(NDVI2018, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "viridis", name = "NDVI 2018") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2018")
+
+NDVI2019_plot <- ggplot() + 
+  geom_raster(NDVI2019, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "viridis", name = "NDVI 2019") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2019")
+
+NDVI2020_plot <- ggplot() + 
+  geom_raster(NDVI2020, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "viridis", name = "NDVI 2020") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2020")
+
+NDVI2021_plot <- ggplot() + 
+  geom_raster(NDVI2021, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "viridis", name = "NDVI 2021") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2021")
+
+NDVIPatchwork <- NDVI2017_plot + NDVI2018_plot + NDVI2019_plot + NDVI2020_plot + NDVI2021_plot
+NDVIPatchwork + plot_annotation(
+  title = 'NDVI',
+  subtitle = 'Vaia effects',
+  caption = 'Source: Landsat7')
+
+
+#How vegetation changes during the years
+ndif1817_plot <- ggplot() + 
+  geom_raster((NDVI2018-NDVI2017), mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "cividis", name = "2018-2017") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2018-2017")
+
+ndif1918_plot <- ggplot() + 
+  geom_raster((NDVI2019-NDVI2018), mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "cividis", name = "2019-2018") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2019-2018")
+
+ndif2019_plot <- ggplot() + 
+  geom_raster((NDVI2020-NDVI2019), mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "cividis", name = "2020-2019") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2020-2019")
+
+ndif2120_plot <- ggplot() + 
+  geom_raster((NDVI2021-NDVI2020), mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "cividis", name = "2021-2020") +
+  labs(x="Longitude", y="Latitude") + 
+  ggtitle("2021-2020")
+
+ndifPatchwork <- ndif1817_plot + ndif1918_plot + ndif2019_plot + ndif2120_plot 
+ndifPatchwork + plot_annotation(
+  title = 'NDVI difference',
+  subtitle = 'Vaia effects',
+  caption = 'Source: Landsat7')
+
+#StDev calculated on band 4=NIR, provides insight on vegetation variability
+stDev2017 <- focal(t2017$X20171018_B4, matrix(1/9, 3, 3), fun=sd) #3x3 moving window, calculates standard deviation
+stDev2018 <- focal(t2018$X20181005_B4, matrix(1/9, 3, 3), fun=sd)
+stDev2019 <- focal(t2019$X20191125_B4, matrix(1/9, 3, 3), fun=sd)
+stDev2020 <- focal(t2020$X20201111_B4, matrix(1/9, 3, 3), fun=sd)
+stDev2021 <- focal(t2021$X20211029_B4, matrix(1/9, 3, 3), fun=sd)
+
+stDev2017_plot  <- ggplot() +
+  geom_raster(stDev2017, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "magma", name = "Stdev") +
+  labs(x="Longitude",y="Latitude") +
+  ggtitle("2017")
+
+stDev2018_plot  <- ggplot() +
+  geom_raster(stDev2018, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "magma", name = "Stdev") +
+  labs(x="Longitude",y="Latitude") +
+  ggtitle("2018")
+
+stDev2019_plot  <- ggplot() +
+  geom_raster(stDev2019, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "magma", name = "Stdev") +
+  labs(x="Longitude",y="Latitude") +
+  ggtitle("2019")
+
+stDev2020_plot  <- ggplot() +
+  geom_raster(stDev2020, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "magma", name = "Stdev") +
+  labs(x="Longitude",y="Latitude") +
+  ggtitle("2020")
+
+stDev2021_plot  <- ggplot() +
+  geom_raster(stDev2021, mapping = aes(x=x, y=y, fill=layer), show.legend = TRUE) +
+  scale_fill_viridis(option = "magma", name = "Stdev") +
+  labs(x="Longitude",y="Latitude") +
+  ggtitle("2021")
+
+stDevPatchwork <- stDev2017_plot + stDev2018_plot + stDev2019_plot + stDev2020_plot + stDev2021_plot
+stDevPatchwork + plot_annotation(
+  title = 'stdev',
+  subtitle = 'Vaia effects',
+  caption = 'Source: Landsat7')
+
+
+#Principal Component Analysis
+PCA_2017 <- rasterPCA(t2017)
+PCA_2017
+summary(PCA_2017$model)
+loadings(PCA_2017$model) #most part of the variability is explained by band 4=NIR
+stDev_PC1_2017 <- focal(PCA_2017$map$PC1, matrix(1/9, 3, 3), fun=sd) #StDev calculated on the first principal component (PC1) because it best explains variability
+stDev_PC1_2017_plot <- ggplot() +
+  geom_raster(stDev_PC1_2017, mapping=aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis(option = "viridis")
+#stDev_PC1_2017_plot 
+
+PCA_2018 <- rasterPCA(t2018)
+summary(PCA_2018$model)
+loadings(PCA_2018$model)
+stDev_PC1_2018 <- focal(PCA_2018$map$PC1, matrix(1/9, 3, 3), fun=sd)
+stDev_PC1_2018_plot <- ggplot() +
+  geom_raster(stDev_PC1_2018, mapping=aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis(option = "viridis")
+#stDev_PC1_2018_plot
+
+PCA_2019 <- rasterPCA(t2019)
+summary(PCA_2019$model)
+loadings(PCA_2019$model)
+stDev_PC1_2019 <- focal(PCA_2019$map$PC1, matrix(1/9, 3, 3), fun=sd)
+stDev_PC1_2019_plot <- ggplot() +
+  geom_raster(stDev_PC1_2019, mapping=aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis(option = "viridis")
+#stDev_PC1_2019_plot
+
+PCA_2020 <- rasterPCA(t2020)
+summary(PCA_2020$model)
+loadings(PCA_2020$model)
+stDev_PC1_2020 <- focal(PCA_2020$map$PC1, matrix(1/9, 3, 3), fun=sd)
+stDev_PC1_2020_plot <- ggplot() +
+  geom_raster(stDev_PC1_2020, mapping=aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis(option = "viridis")
+#stDev_PC1_2020_plot
+
+PCA_2021 <- rasterPCA(t2021)
+summary(PCA_2021$model)
+loadings(PCA_2021$model)
+stDev_PC1_2021 <- focal(PCA_2021$map$PC1, matrix(1/9, 3, 3), fun=sd)
+stDev_PC1_2021_plot <- ggplot() +
+  geom_raster(stDev_PC1_2021, mapping=aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis(option = "viridis")
+#stDev_PC1_2021_plot
+
+stDev_PC_patchwork <- stDev_PC1_2017_plot + stDev_PC1_2018_plot + stDev_PC1_2019_plot + stDev_PC1_2020_plot + stDev_PC1_2021_plot
+stDev_PC_patchwork + plot_annotation(
+  title = 'stdev of 1st Principal Component',
+  subtitle = 'Vaia effects',
+  caption = 'Source: Landsat7')
+
+#Bands representativeness
+dataframe <- read.csv("dataframe_bande.csv", sep = ";")
+dataframe
+rappresentatività_plot <- ggplot(data=dataframe, aes(x=date, y=value)) +
+   geom_line(aes(colour=band), size=1) +
+   geom_point()
+rappresentatività_plot
+
+#The following code is mainly an educated guess on a potential use of PCA so it should not be kept into much consideration, feedback is appreciated; note that it is not optimized for colorblind people
+#Class classification
+ggRGB(PCA_2017$map, 2,1,3, stretch = "hist") #shows maps using the principal components, PC1 showed as green;could be used as a form of classification 
+ggRGB(PCA_2018$map, 2,1,3, stretch = "hist")
+ggRGB(PCA_2019$map, 2,1,3, stretch = "hist")
+ggRGB(PCA_2020$map, 2,1,3, stretch = "hist")
+ggRGB(PCA_2021$map, 2,1,3, stretch = "hist")
+
+dev.off() #just in case
