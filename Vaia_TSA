@@ -3,8 +3,7 @@ library(ggplot2)
 library(RStoolbox)
 library(viridis)
 library(patchwork)
-library(colorist)
-setwd("Your_Working_Directory")
+setwd("your_working_directory")
 
 l2017 <- list.files(pattern = "20171018") #October
 l2018 <- list.files(pattern = "20181005") #October, pre-Vaia
@@ -30,7 +29,6 @@ r2021 <- brick(rasterfun2021)
 plotRGB(r2017, r=1, g=2, b=3, stretch="hist") #total image, too many pixels, very heavy
 
 #cropping and resampling algorithm
-
 #extent <- drawExtent(show = TRUE, col = "red") #REQUIRES the image in the output to work; allows to select 2 point on the map that will create the area used to crop the layers
 #N.B. The previous function saves the object as an extent, is is not required to run the line everytime for it is saved in the enviroment. It is still possible to run the line again if you wish to change the extent
 r2017c <- crop(r2017, extent) #crops image using the extent we created; snap="near" matches the borders of our drawn extend with those of the layer
@@ -128,6 +126,8 @@ ndifPatchwork + plot_annotation(
   title = 'NDVI difference',
   subtitle = 'Vaia effects',
   caption = 'Source: Landsat7')
+  
+(NDVI2017_plot + NDVI2018_plot + ndif1817_plot) / (NDVI2018_plot + NDVI2019_plot + ndif1918_plot) / (NDVI2019_plot + NDVI2020_plot + ndif2019_plot) / (NDVI2020_plot + NDVI2021_plot + ndif2120_plot) #patchwork at its full potential
 
 #StDev calculated on band 4=NIR, provides insight on vegetation variability
 stDev2017 <- focal(t2017$X20171018_B4, matrix(1/9, 3, 3), fun=sd) #3x3 moving window, calculates standard deviation
@@ -173,7 +173,7 @@ stDevPatchwork + plot_annotation(
   caption = 'Source: Landsat7')
 
 
-#Principal Component Analysis
+#Principal Components Analysis
 PCA_2017 <- rasterPCA(t2017)
 PCA_2017
 summary(PCA_2017$model)
@@ -186,12 +186,12 @@ stDev_PC1_2017_plot <- ggplot() +
 
 PCA_2018 <- rasterPCA(t2018)
 summary(PCA_2018$model)
-loadings(PCA_2018$model)
-stDev_PC1_2018 <- focal(PCA_2018$map$PC1, matrix(1/9, 3, 3), fun=sd)
+loadings(PCA_2018$model) #shows the contribution of each band to each Principal Component. Most part of the variability is explained by band 4=NIR
+stDev_PC1_2018 <- focal(PCA_2018$map$PC1, matrix(1/9, 3, 3), fun=sd) #StDev calculated on the first principal component (PC1) because it best explains variability
 stDev_PC1_2018_plot <- ggplot() +
   geom_raster(stDev_PC1_2018, mapping=aes(x=x, y=y, fill=layer)) + 
   scale_fill_viridis(option = "viridis")
-#stDev_PC1_2018_plot
+#stDev_PC1_2018_plot #accessory line, just to have a quick view of the analysis result
 
 PCA_2019 <- rasterPCA(t2019)
 summary(PCA_2019$model)
@@ -231,7 +231,7 @@ dataframe <- read.csv("dataframe_bande.csv", sep = ";")
 dataframe
 rappresentatività_plot <- ggplot(data=dataframe, aes(x=date, y=value)) +
    geom_line(aes(colour=band), size=1) +
-   geom_point()
+   geom_point() #graph showing PC1 representativeness during the years
 rappresentatività_plot
 
 #The following code is mainly an educated guess on a potential use of PCA so it should not be kept into much consideration, feedback is appreciated; note that it is not optimized for colorblind people
